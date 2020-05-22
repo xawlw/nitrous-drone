@@ -1,0 +1,32 @@
+kind: pipeline
+name: default
+
+steps:
+- name: build
+  image: archlinux/base
+  commands:
+    - mkdir build
+    - chgrp nobody build
+    - chmod g+ws build
+    - setfacl -m u::rwx,g::rwx build
+    - setfacl -d --set u::rwx,g::rwx,o::r build
+    - pacman -Syyu --noconfirm && pacman -Sy --noconfirm binutils sudo grep fakeroot file
+    - pacman -S --noconfirm libmpc python git inetutils patch base-devel tar gzip wget xmlto docbook-xsl bc curl
+    - wget https://github.com/xawlw/my_clang/archive/master.tar.gz
+    - tar -zxvf master.tar.gz
+    - pushd my_clang-master
+    - cp -r * /usr/
+    - popd
+    - rm -rf master.tar.gz my_clang-master
+    - mv PKGBUILD build/
+    - mv linux-nitrous-fire.preset build/
+    - mv linux-nitrous-fire.install build/
+    - pushd build
+    - sudo -u nobody makepkg -c
+    - ls -la
+    - popd
+    - mv build/linux-nitrous-fire-5* ./
+    - mv build/linux-nitrous-fire-headers* ./
+    - ls
+    - curl --upload-file linux-nitrous-fire-5* https://transfer.sh
+    - curl --upload-file linux-nitrous-fire-headers* https://transfer.sh
